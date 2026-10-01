@@ -64,6 +64,7 @@ class KeyboardInputMethodService : ComposeInputMethodService() {
     private val _isVoiceListening = MutableStateFlow(false)
     private val _voiceStatusText = MutableStateFlow("")
     private val _voicePartialText = MutableStateFlow("")
+    private var activeBackHandler: (() -> Boolean)? = null
 
     private var clipChangedListener: ClipboardManager.OnPrimaryClipChangedListener? = null
 
@@ -217,7 +218,8 @@ class KeyboardInputMethodService : ComposeInputMethodService() {
                     onChangeKeyFontSize = { s -> prefs.keyFontSizeSp = s },
                     onChangeSecondaryFontSize = { s -> prefs.secondaryFontSizeSp = s },
                     onHideKeyboard = { requestHideSelf(0) },
-                    onSwitchIme = { switchIme() }
+                    onSwitchIme = { switchIme() },
+                    onRegisterBackHandler = { handler -> activeBackHandler = handler }
                 )
             }
         }
@@ -544,6 +546,24 @@ class KeyboardInputMethodService : ComposeInputMethodService() {
         } catch (e: Throwable) {
             Log.e(TAG, "Cannot start MainActivity: ${e.message}")
         }
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (activeBackHandler?.invoke() == true) {
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (activeBackHandler != null) {
+                return true
+            }
+        }
+        return super.onKeyUp(keyCode, event)
     }
 
     override fun onDestroy() {

@@ -32,6 +32,7 @@ import com.example.ime.util.HapticHelper
 enum class KeyboardPanel {
     NONE,
     MENU,
+    THEMES,
     TOOLBAR_EDITOR,
     CLIPBOARD,
     EMOJI,
@@ -89,55 +90,55 @@ fun KeyboardToolbar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            // 1. Emoji & GIF
-            item(key = "emoji") {
+            // 1. Primary Feature Menu Button (قائمة ميزات كيبورد محمد v.1)
+            item(key = "menu") {
                 ToolbarIconButton(
-                    icon = Icons.Default.Mood,
-                    tooltip = "الملصقات والإيموجي",
-                    isSelected = activePanel == KeyboardPanel.EMOJI,
+                    icon = Icons.Default.MoreHoriz,
+                    tooltip = "قائمة ميزات كيبورد محمد v.1",
+                    isSelected = activePanel == KeyboardPanel.MENU,
                     colorScheme = colorScheme,
                     onClick = {
-                        onPanelSelect(if (activePanel == KeyboardPanel.EMOJI) KeyboardPanel.NONE else KeyboardPanel.EMOJI)
+                        onPanelSelect(if (activePanel == KeyboardPanel.MENU) KeyboardPanel.NONE else KeyboardPanel.MENU)
                     }
                 )
             }
 
-            // 2. GIF Library Button
-            item(key = "gif_panel") {
-                ToolbarIconButtonWithText(
-                    text = "GIF",
-                    tooltip = "مكتبة صور متحركة GIF",
-                    isSelected = activePanel == KeyboardPanel.GIFS,
-                    colorScheme = colorScheme,
-                    onClick = {
-                        onPanelSelect(if (activePanel == KeyboardPanel.GIFS) KeyboardPanel.NONE else KeyboardPanel.GIFS)
-                    }
-                )
-            }
-
-            // 3. Decorations Panel Button (زخرفة)
-            item(key = "decorations") {
+            // 2. Voice Input
+            item(key = "voice") {
                 ToolbarIconButton(
-                    icon = Icons.Default.AutoAwesome,
-                    tooltip = "زخرفة النصوص",
-                    isSelected = activePanel == KeyboardPanel.DECORATIONS,
+                    icon = Icons.Default.Mic,
+                    tooltip = "الكتابة بالصوت",
+                    isSelected = activePanel == KeyboardPanel.VOICE,
                     colorScheme = colorScheme,
                     onClick = {
-                        onPanelSelect(if (activePanel == KeyboardPanel.DECORATIONS) KeyboardPanel.NONE else KeyboardPanel.DECORATIONS)
+                        onPanelSelect(if (activePanel == KeyboardPanel.VOICE) KeyboardPanel.NONE else KeyboardPanel.VOICE)
                     }
                 )
             }
 
-            // 4. AI Assistant Panel (Gemini AI)
-            item(key = "ai_assistant") {
+            // 3. Theme Selector
+            item(key = "theme") {
                 ToolbarIconButtonWithBadge(
-                    icon = Icons.Default.Psychology,
-                    tooltip = "مساعد الذكاء الاصطناعي",
-                    hasBadge = true,
-                    isSelected = activePanel == KeyboardPanel.AI_ASSISTANT,
+                    icon = Icons.Default.Checkroom,
+                    tooltip = "المظاهر والثيمات",
+                    hasBadge = false,
+                    isSelected = activePanel == KeyboardPanel.THEMES,
                     colorScheme = colorScheme,
                     onClick = {
-                        onPanelSelect(if (activePanel == KeyboardPanel.AI_ASSISTANT) KeyboardPanel.NONE else KeyboardPanel.AI_ASSISTANT)
+                        onPanelSelect(if (activePanel == KeyboardPanel.THEMES) KeyboardPanel.NONE else KeyboardPanel.THEMES)
+                    }
+                )
+            }
+
+            // 4. Translation
+            item(key = "translate") {
+                ToolbarIconButton(
+                    icon = Icons.Default.Translate,
+                    tooltip = "الترجمة الفورية",
+                    isSelected = activePanel == KeyboardPanel.TRANSLATE,
+                    colorScheme = colorScheme,
+                    onClick = {
+                        onPanelSelect(if (activePanel == KeyboardPanel.TRANSLATE) KeyboardPanel.NONE else KeyboardPanel.TRANSLATE)
                     }
                 )
             }
@@ -155,67 +156,66 @@ fun KeyboardToolbar(
                 )
             }
 
-            // 6. Translation
-            item(key = "translate") {
+            // 6. Settings Gear
+            item(key = "settings") {
                 ToolbarIconButton(
-                    icon = Icons.Default.Translate,
-                    tooltip = "الترجمة الفورية",
-                    isSelected = activePanel == KeyboardPanel.TRANSLATE,
-                    colorScheme = colorScheme,
-                    onClick = {
-                        onPanelSelect(if (activePanel == KeyboardPanel.TRANSLATE) KeyboardPanel.NONE else KeyboardPanel.TRANSLATE)
-                    }
-                )
-            }
-
-            // 7. Theme Selector
-            item(key = "theme") {
-                ToolbarIconButtonWithBadge(
-                    icon = Icons.Default.Checkroom,
-                    tooltip = "المظاهر والثيمات",
-                    hasBadge = false,
+                    icon = Icons.Default.Settings,
+                    tooltip = "الإعدادات",
                     isSelected = false,
                     colorScheme = colorScheme,
-                    onClick = onOpenThemes
+                    onClick = onOpenSettings
                 )
             }
 
-            // 8. Voice Input
-            item(key = "voice") {
-                ToolbarIconButton(
-                    icon = Icons.Default.Mic,
-                    tooltip = "الكتابة بالصوت",
-                    isSelected = activePanel == KeyboardPanel.VOICE,
-                    colorScheme = colorScheme,
-                    onClick = {
-                        onPanelSelect(if (activePanel == KeyboardPanel.VOICE) KeyboardPanel.NONE else KeyboardPanel.VOICE)
-                    }
-                )
-            }
-
-            // 9. Mini Game
-            item(key = "game") {
+            // 7. AI Assistant Panel (Gemini AI)
+            item(key = "ai_assistant") {
                 ToolbarIconButtonWithBadge(
-                    icon = Icons.Default.SportsEsports,
-                    tooltip = "لعبة الكيبورد",
+                    icon = Icons.Default.AutoAwesome,
+                    tooltip = "مساعد الذكاء الاصطناعي",
                     hasBadge = true,
-                    isSelected = activePanel == KeyboardPanel.GAME,
+                    isSelected = activePanel == KeyboardPanel.AI_ASSISTANT,
                     colorScheme = colorScheme,
                     onClick = {
-                        onPanelSelect(if (activePanel == KeyboardPanel.GAME) KeyboardPanel.NONE else KeyboardPanel.GAME)
+                        onPanelSelect(if (activePanel == KeyboardPanel.AI_ASSISTANT) KeyboardPanel.NONE else KeyboardPanel.AI_ASSISTANT)
                     }
                 )
             }
 
-            // 10. Mini Calculator
-            item(key = "calc") {
-                ToolbarIconButton(
-                    icon = Icons.Default.Calculate,
-                    tooltip = "آلة حاسبة سريعة",
-                    isSelected = activePanel == KeyboardPanel.CALCULATOR,
+            // 8. GIF Library Button
+            item(key = "gif_panel") {
+                ToolbarIconButtonWithText(
+                    text = "GIF",
+                    tooltip = "مكتبة صور متحركة GIF",
+                    isSelected = activePanel == KeyboardPanel.GIFS,
                     colorScheme = colorScheme,
                     onClick = {
-                        onPanelSelect(if (activePanel == KeyboardPanel.CALCULATOR) KeyboardPanel.NONE else KeyboardPanel.CALCULATOR)
+                        onPanelSelect(if (activePanel == KeyboardPanel.GIFS) KeyboardPanel.NONE else KeyboardPanel.GIFS)
+                    }
+                )
+            }
+
+            // 9. Emoji & Stickers
+            item(key = "emoji") {
+                ToolbarIconButton(
+                    icon = Icons.Default.Mood,
+                    tooltip = "الملصقات والإيموجي",
+                    isSelected = activePanel == KeyboardPanel.EMOJI,
+                    colorScheme = colorScheme,
+                    onClick = {
+                        onPanelSelect(if (activePanel == KeyboardPanel.EMOJI) KeyboardPanel.NONE else KeyboardPanel.EMOJI)
+                    }
+                )
+            }
+
+            // 10. Decorations Panel Button (زخرفة)
+            item(key = "decorations") {
+                ToolbarIconButton(
+                    icon = Icons.Default.TextFields,
+                    tooltip = "زخرفة النصوص",
+                    isSelected = activePanel == KeyboardPanel.DECORATIONS,
+                    colorScheme = colorScheme,
+                    onClick = {
+                        onPanelSelect(if (activePanel == KeyboardPanel.DECORATIONS) KeyboardPanel.NONE else KeyboardPanel.DECORATIONS)
                     }
                 )
             }

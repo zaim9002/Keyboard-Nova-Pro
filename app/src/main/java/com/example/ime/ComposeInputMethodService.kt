@@ -4,10 +4,14 @@ import android.inputmethodservice.InputMethodService
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.widget.FrameLayout
+import androidx.activity.OnBackPressedDispatcher
+import androidx.activity.OnBackPressedDispatcherOwner
+import androidx.activity.setViewTreeOnBackPressedDispatcherOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -23,15 +27,22 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 abstract class ComposeInputMethodService : InputMethodService(),
     LifecycleOwner,
     ViewModelStoreOwner,
-    SavedStateRegistryOwner {
+    SavedStateRegistryOwner,
+    OnBackPressedDispatcherOwner {
 
     private val lifecycleRegistry by lazy { LifecycleRegistry(this) }
     private val store by lazy { ViewModelStore() }
     private val savedStateRegistryController by lazy { SavedStateRegistryController.create(this) }
+    private val backDispatcher by lazy {
+        OnBackPressedDispatcher {
+            requestHideSelf(0)
+        }
+    }
 
     override val lifecycle: Lifecycle get() = lifecycleRegistry
     override val viewModelStore: ViewModelStore get() = store
     override val savedStateRegistry: SavedStateRegistry get() = savedStateRegistryController.savedStateRegistry
+    override val onBackPressedDispatcher: OnBackPressedDispatcher get() = backDispatcher
 
     override fun onCreate() {
         super.onCreate()
@@ -59,6 +70,7 @@ abstract class ComposeInputMethodService : InputMethodService(),
                 decorView.setViewTreeLifecycleOwner(this)
                 decorView.setViewTreeViewModelStoreOwner(this)
                 decorView.setViewTreeSavedStateRegistryOwner(this)
+                decorView.setViewTreeOnBackPressedDispatcherOwner(this)
                 (decorView as? ViewGroup)?.let { group ->
                     for (i in 0 until group.childCount) {
                         val child = group.getChildAt(i)
@@ -143,6 +155,25 @@ abstract class ComposeInputMethodService : InputMethodService(),
     override fun onFinishInputView(finishingInput: Boolean) {
         super.onFinishInputView(finishingInput)
         ensureStopped()
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (backDispatcher.hasEnabledCallbacks()) {
+                backDispatcher.onBackPressed()
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (backDispatcher.hasEnabledCallbacks()) {
+                return true
+            }
+        }
+        return super.onKeyUp(keyCode, event)
     }
 
     override fun onDestroy() {

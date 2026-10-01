@@ -1,6 +1,7 @@
 package com.example.ime.ui.panels
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -10,7 +11,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -49,33 +52,48 @@ fun KeyboardMenuPanel(
     onToggleOneHanded: () -> Unit,
     onOpenNews: () -> Unit,
     onOpenFonts: () -> Unit,
-    onToggleNumberRow: () -> Unit,
-    onOpenNumpad: () -> Unit = {},
-    onOpenSettings: () -> Unit,
-    onOpenInstaFonts: () -> Unit,
+    onOpenAi: () -> Unit = {},
     onOpenHandwriting: () -> Unit,
+    onOpenInstaFonts: () -> Unit,
+    onToggleTashkeel: () -> Unit = {},
+    onOpenResize: () -> Unit = {},
+    onOpenNumpad: () -> Unit = {},
+    onToggleNumberRow: () -> Unit,
+    onOpenSettings: () -> Unit,
     onOpenToolbarEditor: () -> Unit,
     onSwitchIme: (() -> Unit)? = null,
     onClose: () -> Unit
 ) {
     val menuItems = listOf(
-        MenuItemData("switch_ime", "تبديل الكيبورد", icon = Icons.Default.KeyboardAlt, hasBadge = true),
+        // Row 1 (Matches user screenshot)
+        MenuItemData("switch_ime", "تبديل الكيبورد", icon = Icons.Default.Keyboard, hasBadge = true),
         MenuItemData("theme", "المظاهر والثيمات", icon = Icons.Default.Checkroom),
         MenuItemData("voice", "الكتابة بالصوت", icon = Icons.Default.Mic),
         MenuItemData("game", "لعبة الكيبورد", icon = Icons.Default.SportsEsports, hasBadge = true),
+
+        // Row 2 (Matches user screenshot)
         MenuItemData("translate", "ترجمة فورية", icon = Icons.Default.Translate),
         MenuItemData("quick_text", "الحافظة المشفرة", icon = Icons.Default.Assignment),
         MenuItemData("text_edit", "تحريك المؤشر", icon = Icons.Default.OpenWith),
         MenuItemData("calc", "آلة حاسبة", icon = Icons.Default.Calculate),
-        MenuItemData("notes", "الملاحظات", icon = Icons.Default.EditNote),
-        MenuItemData("one_handed", "وضع اليد الواحدة", icon = Icons.Default.Smartphone),
+
+        // Row 3 (Matches user screenshot)
+        MenuItemData("notes", "الملاحظات", icon = Icons.Default.Notes),
+        MenuItemData("one_handed", "وضع اليد الواحدة", icon = Icons.Default.StayCurrentPortrait),
         MenuItemData("news", "أخبار وترند", icon = Icons.Default.Newspaper),
         MenuItemData("font", "زخرفة النصوص", textIcon = "Aa"),
-        MenuItemData("numpad", "لوحة الأرقام", icon = Icons.Default.Pin, hasBadge = true),
+
+        // Row 4 (Extended features of Mohammed v.1)
+        MenuItemData("ai", "مساعد الذكاء", icon = Icons.Default.AutoAwesome, hasBadge = true),
+        MenuItemData("handwriting", "الرسم باليد", icon = Icons.Default.Draw),
+        MenuItemData("insta_font", "خطوط إنستغرام", textIcon = "✨"),
+        MenuItemData("tashkeel", "شريط التشكيل", textIcon = "ـَـُـِ"),
+
+        // Row 5
+        MenuItemData("resize", "حجم اللوحة", icon = Icons.Default.AspectRatio),
+        MenuItemData("numpad", "لوحة الأرقام", textIcon = "#123", hasBadge = true),
         MenuItemData("numbers", "صف الأرقام", textIcon = "123"),
-        MenuItemData("settings", "الإعدادات", icon = Icons.Default.Settings),
-        MenuItemData("insta_font", "خطوط إنستا", textIcon = "✨"),
-        MenuItemData("handwriting", "كتابة يدوية", icon = Icons.Default.Draw)
+        MenuItemData("settings", "الإعدادات الشاملة", icon = Icons.Default.Settings)
     )
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
@@ -85,13 +103,15 @@ fun KeyboardMenuPanel(
                 .background(colorScheme.background)
                 .padding(horizontal = 8.dp, vertical = 6.dp)
         ) {
+            // Header Bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .padding(horizontal = 6.dp, vertical = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                // In RTL: First item is placed on the Right
                 IconButton(
                     onClick = onOpenToolbarEditor,
                     modifier = Modifier.size(36.dp)
@@ -111,13 +131,14 @@ fun KeyboardMenuPanel(
                     fontWeight = FontWeight.Bold
                 )
 
+                // In RTL: Last item is placed on the Left
                 IconButton(
                     onClick = onClose,
                     modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
                         Icons.Default.Keyboard,
-                        contentDescription = "لوحة المفاتيح",
+                        contentDescription = "إغلاق والعودة للوحة المفاتيح",
                         tint = colorScheme.keyText,
                         modifier = Modifier.size(22.dp)
                     )
@@ -126,6 +147,7 @@ fun KeyboardMenuPanel(
 
             Spacer(Modifier.height(4.dp))
 
+            // 4-Column Feature Cards Grid
             LazyVerticalGrid(
                 columns = GridCells.Fixed(4),
                 modifier = Modifier.fillMaxSize(),
@@ -137,9 +159,10 @@ fun KeyboardMenuPanel(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(68.dp)
-                            .clip(RoundedCornerShape(10.dp))
+                            .height(72.dp)
+                            .clip(RoundedCornerShape(12.dp))
                             .background(colorScheme.keyBackground)
+                            .border(0.5.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
                             .clickable {
                                 when (item.id) {
                                     "switch_ime" -> {
@@ -156,18 +179,23 @@ fun KeyboardMenuPanel(
                                     "one_handed" -> onToggleOneHanded()
                                     "news" -> onOpenNews()
                                     "font" -> onOpenFonts()
+                                    "ai" -> onOpenAi()
+                                    "handwriting" -> onOpenHandwriting()
+                                    "insta_font" -> onOpenInstaFonts()
+                                    "tashkeel" -> onToggleTashkeel()
+                                    "resize" -> onOpenResize()
                                     "numpad" -> onOpenNumpad()
                                     "numbers" -> onToggleNumberRow()
                                     "settings" -> onOpenSettings()
-                                    "insta_font" -> onOpenInstaFonts()
-                                    "handwriting" -> onOpenHandwriting()
                                 }
                             }
                             .padding(4.dp)
                     ) {
+                        // Red notification badge on top-right (in RTL Alignment.TopStart is top-right)
                         if (item.hasBadge) {
                             Box(
                                 modifier = Modifier
+                                    .padding(4.dp)
                                     .size(7.dp)
                                     .clip(CircleShape)
                                     .background(Color(0xFFFF3B30))
@@ -185,13 +213,13 @@ fun KeyboardMenuPanel(
                                     imageVector = item.icon,
                                     contentDescription = item.title,
                                     tint = colorScheme.keyText,
-                                    modifier = Modifier.size(22.dp)
+                                    modifier = Modifier.size(24.dp)
                                 )
                             } else if (item.textIcon != null) {
                                 Text(
                                     text = item.textIcon,
                                     color = colorScheme.keyText,
-                                    fontSize = 16.sp,
+                                    fontSize = 17.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                             }

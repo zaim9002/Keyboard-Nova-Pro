@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
@@ -131,6 +132,9 @@ fun NovaAppScreen() {
     val scope = rememberCoroutineScope()
 
     var selectedTab by remember { mutableIntStateOf(0) }
+    BackHandler(enabled = selectedTab != 0) {
+        selectedTab = 0
+    }
     var currentTheme by remember { mutableStateOf(prefs.currentTheme) }
     var currentMode by remember { mutableStateOf(prefs.keyboardMode) }
     var isHapticEnabled by remember { mutableStateOf(prefs.hapticFeedback) }
