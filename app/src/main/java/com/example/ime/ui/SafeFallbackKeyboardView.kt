@@ -55,7 +55,7 @@ class SafeFallbackKeyboardView(
         }
 
         val title = TextView(context).apply {
-            text = "Nova Keyboard - كيبورد محمد v.1"
+            text = "كيبورد محمد"
             setTextColor(Color.parseColor("#94A3B8"))
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
             typeface = Typeface.DEFAULT_BOLD

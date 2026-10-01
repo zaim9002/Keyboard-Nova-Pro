@@ -17,6 +17,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,25 +26,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Translate
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -56,12 +55,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
@@ -69,10 +68,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -83,10 +84,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -104,40 +105,92 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MohamedKeyboardApp()
+            MohamedKeyboardMainScreen()
         }
     }
 }
 
 // Brand Colors
 private val BrandGold = Color(0xFFFFD700)
-private val BrandPrimary = Color(0xFF1E88E5)
-private val BrandAccent = Color(0xFF00E5FF)
-private val DarkBg = Color(0xFF121214)
-private val DarkSurface = Color(0xFF1C1C20)
-private val DarkCard = Color(0xFF24242A)
-private val TextWhite = Color(0xFFF0F0F5)
-private val TextMuted = Color(0xFF9E9EA8)
+private val BrandPrimary = Color(0xFF00E5FF)
+private val BrandSecondary = Color(0xFF1E88E5)
+private val DarkBg = Color(0xFF0D111A)
+private val DarkSurface = Color(0xFF151C28)
+private val DarkCard = Color(0xFF1E2838)
+private val TextWhite = Color(0xFFF0F4F8)
+private val TextMuted = Color(0xFF94A3B8)
+private val SuccessGreen = Color(0xFF10B981)
+private val AlertAmber = Color(0xFFF59E0B)
+
+data class NavTabItem(
+    val title: String,
+    val icon: ImageVector
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MohamedKeyboardApp() {
+fun MohamedKeyboardMainScreen() {
     val context = LocalContext.current
     val app = context.applicationContext as? KeyboardProApp
     val prefs = remember { app?.preferences ?: KeyboardPreferences(context) }
-    val scope = rememberCoroutineScope()
 
     var selectedTab by remember { mutableIntStateOf(0) }
-    BackHandler(enabled = selectedTab != 0) {
-        selectedTab = 0
+    var lastBackPressTime by remember { mutableLongStateOf(0L) }
+
+    BackHandler(enabled = true) {
+        if (selectedTab != 0) {
+            selectedTab = 0
+        } else {
+            val now = System.currentTimeMillis()
+            if (now - lastBackPressTime < 2000L) {
+                (context as? ComponentActivity)?.finish()
+            } else {
+                lastBackPressTime = now
+                android.widget.Toast.makeText(context, "اضغط مرة أخرى للخروج من التطبيق", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     val currentThemeName by prefs.themeState.collectAsState()
     val colorScheme = KeyboardThemes.getTheme(currentThemeName, prefs)
 
-    // Live Sandbox Text State
-    var sandboxText by remember { mutableStateOf("مرحباً بك في كيبورد محمد! لوحة المفاتيح الشاملة بكل الميزات والترجمة الفورية ⚡") }
+    // State for live sandbox text
+    var sandboxText by remember {
+        mutableStateOf("مرحباً بك في كيبورد محمد! لوحة المفاتيح الذكية الشاملة مع الترجمة الفورية والتشكيل العربي ⚡")
+    }
     var showEmbeddedKeyboard by remember { mutableStateOf(true) }
+
+    // Live detection of IME enablement and default status
+    var isEnabledInSystem by remember { mutableStateOf(false) }
+    var isDefaultInSystem by remember { mutableStateOf(false) }
+
+    val checkImeStatus = {
+        try {
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            val enabledMethods = imm?.enabledInputMethodList ?: emptyList()
+            isEnabledInSystem = enabledMethods.any { it.packageName == context.packageName }
+
+            val currentDefault = Settings.Secure.getString(
+                context.contentResolver,
+                Settings.Secure.DEFAULT_INPUT_METHOD
+            ) ?: ""
+            isDefaultInSystem = currentDefault.contains(context.packageName)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    LaunchedEffect(selectedTab) {
+        checkImeStatus()
+    }
+
+    val tabs = listOf(
+        NavTabItem("تجربة الكيبورد", Icons.Default.Keyboard),
+        NavTabItem("المظاهر والثيمات", Icons.Default.Palette),
+        NavTabItem("الحافظة والملاحظات", Icons.Default.ContentCopy),
+        NavTabItem("الذكاء والترجمة", Icons.Default.Translate),
+        NavTabItem("الإعدادات والتخصيص", Icons.Default.Settings)
+    )
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Scaffold(
@@ -147,18 +200,23 @@ fun MohamedKeyboardApp() {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
-                                    .size(36.dp)
+                                    .size(38.dp)
                                     .clip(RoundedCornerShape(10.dp))
                                     .background(
                                         Brush.linearGradient(
-                                            listOf(BrandPrimary, BrandAccent)
+                                            listOf(BrandSecondary, BrandPrimary)
                                         )
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("م", color = Color.White, fontWeight = FontWeight.Black, fontSize = 20.sp)
+                                Text(
+                                    text = "م",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 22.sp
+                                )
                             }
-                            Spacer(modifier = Modifier.width(10.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
                                     text = "كيبورد محمد",
@@ -167,20 +225,20 @@ fun MohamedKeyboardApp() {
                                     fontSize = 17.sp
                                 )
                                 Text(
-                                    text = "لوحة المفاتيح الذكية الشاملة",
-                                    color = TextMuted,
+                                    text = if (isDefaultInSystem) "لوحة المفاتيح الافتراضية النشطة ✓" else "لوحة المفاتيح الذكية الشاملة",
+                                    color = if (isDefaultInSystem) SuccessGreen else TextMuted,
                                     fontSize = 11.sp
                                 )
                             }
                         }
                     },
                     actions = {
-                        IconButton(
-                            onClick = {
-                                selectedTab = 1 // Switch to Themes
-                            }
-                        ) {
-                            Icon(Icons.Default.Palette, contentDescription = "المظاهر", tint = BrandAccent)
+                        IconButton(onClick = { selectedTab = 1 }) {
+                            Icon(
+                                Icons.Default.Palette,
+                                contentDescription = "المظاهر",
+                                tint = BrandPrimary
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -196,43 +254,68 @@ fun MohamedKeyboardApp() {
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                // Navigation Tabs
-                val tabTitles = listOf("تجربة الكيبورد", "المظاهر والثيمات", "الحافظة", "الذكاء والترجمة", "الإعدادات")
-                TabRow(
+                // Horizontal Scrollable Tab Bar
+                ScrollableTabRow(
                     selectedTabIndex = selectedTab,
                     containerColor = DarkSurface,
-                    contentColor = BrandAccent,
+                    contentColor = BrandPrimary,
+                    edgePadding = 12.dp,
                     indicator = { tabPositions ->
-                        TabRowDefaults.SecondaryIndicator(
-                            Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                            color = BrandAccent
+                        if (selectedTab < tabPositions.size) {
+                            TabRowDefaults.SecondaryIndicator(
+                                Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                                color = BrandPrimary,
+                                height = 3.dp
+                            )
+                        }
+                    },
+                    divider = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                                .background(Color(0xFF1E2838))
                         )
                     }
                 ) {
-                    tabTitles.forEachIndexed { index, title ->
+                    tabs.forEachIndexed { index, tabItem ->
+                        val isSelected = selectedTab == index
                         Tab(
-                            selected = selectedTab == index,
+                            selected = isSelected,
                             onClick = { selectedTab = index },
                             text = {
-                                Text(
-                                    text = title,
-                                    fontSize = 12.sp,
-                                    fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (selectedTab == index) BrandAccent else TextMuted
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = tabItem.icon,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = if (isSelected) BrandPrimary else TextMuted
+                                    )
+                                    Text(
+                                        text = tabItem.title,
+                                        fontSize = 13.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (isSelected) BrandPrimary else TextMuted
+                                    )
+                                }
                             }
                         )
                     }
                 }
 
-                // Tab Content
+                // Tab Content Area
                 Box(modifier = Modifier.weight(1f)) {
                     when (selectedTab) {
-                        0 -> MohamedSandboxTab(
+                        0 -> MohamedSetupAndSandboxTab(
                             sandboxText = sandboxText,
                             onTextChange = { sandboxText = it },
                             showKeyboard = showEmbeddedKeyboard,
                             onToggleKeyboard = { showEmbeddedKeyboard = !showEmbeddedKeyboard },
+                            isEnabledInSystem = isEnabledInSystem,
+                            isDefaultInSystem = isDefaultInSystem,
                             prefs = prefs,
                             colorScheme = colorScheme,
                             onEnableIme = {
@@ -249,26 +332,26 @@ fun MohamedKeyboardApp() {
                                 imm?.showInputMethodPicker()
                             }
                         )
-                        1 -> MohamedThemesTab(
+                        1 -> MohamedThemesCatalogTab(
                             prefs = prefs,
                             onThemeChanged = { themeName ->
                                 prefs.theme = themeName
                             }
                         )
-                        2 -> MohamedClipboardTab(
+                        2 -> MohamedSmartClipboardTab(
                             onInsertToSandbox = { text ->
                                 sandboxText += text
                                 selectedTab = 0
                             }
                         )
-                        3 -> MohamedAiTranslateTab(
+                        3 -> MohamedAiAndTranslateTab(
                             sandboxText = sandboxText,
                             onApplyText = { text ->
                                 sandboxText = text
                                 selectedTab = 0
                             }
                         )
-                        4 -> MohamedSettingsTab(prefs = prefs)
+                        4 -> MohamedComprehensiveSettingsTab(prefs = prefs)
                     }
                 }
             }
@@ -277,11 +360,13 @@ fun MohamedKeyboardApp() {
 }
 
 @Composable
-fun MohamedSandboxTab(
+fun MohamedSetupAndSandboxTab(
     sandboxText: String,
     onTextChange: (String) -> Unit,
     showKeyboard: Boolean,
     onToggleKeyboard: () -> Unit,
+    isEnabledInSystem: Boolean,
+    isDefaultInSystem: Boolean,
     prefs: KeyboardPreferences,
     colorScheme: KeyboardColorScheme,
     onEnableIme: () -> Unit,
@@ -295,177 +380,224 @@ fun MohamedSandboxTab(
             .fillMaxSize()
             .background(DarkBg)
     ) {
-        // Top Sandbox Controls
+        // Upper Controls and Text Field
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(12.dp)
+                .padding(horizontal = 14.dp, vertical = 10.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            // IME Activation Actions
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedButton(
-                    onClick = onEnableIme,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandAccent),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, BrandAccent)
-                ) {
-                    Text("1. تفعيل الكيبورد", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                }
-
-                Button(
-                    onClick = onSelectIme,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandAccent)
-                ) {
-                    Text("2. تعيين كافتراضي", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-
-            // Real Live Sandbox Field
+            // Activation / Setup Status Card
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, BrandAccent.copy(alpha = 0.4f), RoundedCornerShape(12.dp)),
+                    .padding(bottom = 12.dp),
                 colors = CardDefaults.cardColors(containerColor = DarkSurface),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Text(
+                        text = "🚀 إعداد كيبورد محمد في النظام",
+                        color = TextWhite,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(8.dp))
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "⚡ حقل التجربة المباشرة (كيبورد محمد)",
-                            color = BrandAccent,
+                            text = if (isEnabledInSystem) "✓ مفعل في قائمة اللوحات" else "⚠️ غير مفعل بعد",
+                            color = if (isEnabledInSystem) SuccessGreen else AlertAmber,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+
+                        Text(
+                            text = if (isDefaultInSystem) "✓ اللوحة الافتراضية حالياً" else "⚠️ غير معين كافتراضي",
+                            color = if (isDefaultInSystem) SuccessGreen else AlertAmber,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = onEnableIme,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandPrimary),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, BrandPrimary)
+                        ) {
+                            Text("1. تفعيل الكيبورد", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        Button(
+                            onClick = onSelectIme,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
+                        ) {
+                            Text("2. تعيين كافتراضي", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
+            // Interactive Live Typing Sandbox
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, BrandPrimary.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
+                colors = CardDefaults.cardColors(containerColor = DarkSurface),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "⚡ حقل التجربة والكتابة المباشرة",
+                            color = BrandPrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
                         )
 
                         Text(
-                            text = "مسح",
+                            text = "مسح الكل",
                             color = Color(0xFFFF5252),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
                                 .clickable { onTextChange("") }
-                                .padding(horizontal = 6.dp)
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    OutlinedTextField(
-                        value = sandboxText,
-                        onValueChange = onTextChange,
+                    // Sandbox Display Box (Custom Interactive Field to prevent dual system keyboard popping)
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(110.dp),
-                        placeholder = { Text("اكتب هنا للتجربة أو استخدم لوحة المفاتيح بالأسفل...", color = TextMuted) },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = BrandAccent,
-                            unfocusedBorderColor = Color(0xFF33333E),
-                            focusedTextColor = TextWhite,
-                            unfocusedTextColor = TextWhite,
-                            focusedContainerColor = DarkCard,
-                            unfocusedContainerColor = DarkCard
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    )
+                            .height(100.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(DarkCard)
+                            .border(1.dp, Color(0xFF2E3A4E), RoundedCornerShape(8.dp))
+                            .padding(10.dp)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        if (sandboxText.isEmpty()) {
+                            Text(
+                                text = "اضغط على الأزرار في لوحة المفاتيح بالأسفل للتجربة...",
+                                color = TextMuted,
+                                fontSize = 13.sp
+                            )
+                        } else {
+                            Text(
+                                text = sandboxText,
+                                color = TextWhite,
+                                fontSize = 14.sp,
+                                lineHeight = 20.sp
+                            )
+                        }
+                    }
 
-                    // Quick Sample Texts
+                    // Quick Helper Chips
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 8.dp)
+                            .padding(top = 10.dp)
                             .horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        QuickSampleChip("✨ تجربة التشكيل العربي") {
-                            onTextChange("كيبورد محمد: سُرْعَةٌ فَائِقَةٌ وَتَرْجَمَةٌ فَوْرِيَّةٌ مَعَ كَافَّةِ الْحُرُوفِ.")
+                        QuickSampleChip("✨ تشكيل عربي") {
+                            onTextChange("كِيبُورْدُ مُحَمَّد: تَرْجَمَةٌ فَوْرِيَّةٌ وَسُرْعَةٌ فَائِقَةٌ.")
                         }
-                        QuickSampleChip("🌐 تجربة الترجمة الفورية") {
-                            onTextChange("Peace and blessings upon you! Welcome to Mohamed Keyboard.")
+                        QuickSampleChip("🌐 English Test") {
+                            onTextChange("Hello! Mohamed Keyboard ultra-fast zero-latency engine.")
                         }
-                        QuickSampleChip("🔤 جميع الحروف العربية") {
+                        QuickSampleChip("🔤 جميع الحروف") {
                             onTextChange("ض ص ث ق ف غ ع ه خ ح ج ش س ي ب ل ا ت ن م ك ط ظ ط ذ د ز ر و ة ى ث")
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Information Box on Enter Long Press Feature
+            // Pro Tip Note
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = DarkCard),
                 shape = RoundedCornerShape(10.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(10.dp),
+                    modifier = Modifier.padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        Icons.Default.Translate,
-                        contentDescription = "ترجمة",
-                        tint = BrandAccent,
+                        Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        tint = BrandGold,
                         modifier = Modifier.size(20.dp)
                     )
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(10.dp))
                     Text(
-                        text = "💡 ميزة الضغط المطول: اضغط مطولاً على زر الإدخال (↵ Enter) للترجمة الفورية للنص المكتوب تلقائياً!",
+                        text = "💡 ميزة الضغط المطول: اضغط مطولاً على زر (↵ Enter) للترجمة الفورية للنص المكتوب تلقائياً!",
                         color = TextWhite,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Toggle Interactive Keyboard Button
+            // Toggle Interactive Keyboard Preview
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
                     .background(DarkSurface)
                     .clickable { onToggleKeyboard() }
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (showKeyboard) "إخفاء لوحة المفاتيح التفاعلية" else "عرض لوحة المفاتيح التفاعلية",
+                    text = if (showKeyboard) "إخفاء اللوحة التفاعلية" else "عرض اللوحة التفاعلية",
                     color = TextWhite,
-                    fontSize = 12.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = if (showKeyboard) "▲" else "▼",
-                    color = BrandAccent,
+                    color = BrandPrimary,
                     fontWeight = FontWeight.Bold
                 )
             }
         }
 
-        // Live Embedded Mohamed Keyboard
+        // Live Embedded Interactive Mohamed Keyboard
         AnimatedVisibility(visible = showKeyboard) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .shadow(12.dp)
                     .background(colorScheme.background)
-                    .border(1.dp, BrandAccent.copy(alpha = 0.3f))
+                    .border(1.dp, BrandPrimary.copy(alpha = 0.3f))
             ) {
                 KeyboardScreen(
                     colorScheme = colorScheme,
@@ -475,7 +607,7 @@ fun MohamedSandboxTab(
                     keyboardHeight = prefs.keyboardHeight,
                     showNumberRow = prefs.showNumberRow,
                     hapticEnabled = prefs.hapticFeedback != "Off",
-                    soundEnabled = false,
+                    soundEnabled = prefs.soundFeedback != "Off",
                     oneHandedMode = prefs.oneHandedMode,
                     suggestions = listOf("السلام عليكم", "شكراً جزيلاً", "أهلاً وسهلاً", "إن شاء الله"),
                     clipboardList = emptyList(),
@@ -496,7 +628,6 @@ fun MohamedSandboxTab(
                     onDeleteAll = { onTextChange("") },
                     onEnter = { onTextChange(sandboxText + "\n") },
                     onLongPressEnter = {
-                        // Instant translation on long-press Enter
                         val clean = sandboxText.trim()
                         if (clean.isNotEmpty()) {
                             val isArabic = clean.any { it in '\u0600'..'\u06FF' }
@@ -547,21 +678,7 @@ fun MohamedSandboxTab(
 }
 
 @Composable
-fun QuickSampleChip(label: String, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(DarkCard)
-            .border(0.5.dp, Color(0xFF33333E), RoundedCornerShape(6.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-    ) {
-        Text(text = label, color = TextMuted, fontSize = 11.sp)
-    }
-}
-
-@Composable
-fun MohamedThemesTab(
+fun MohamedThemesCatalogTab(
     prefs: KeyboardPreferences,
     onThemeChanged: (String) -> Unit
 ) {
@@ -584,39 +701,37 @@ fun MohamedThemesTab(
         "الكوبالت الداكن" to listOf(Color(0xFF0A1128), Color(0xFF001F54), Color(0xFF034078))
     )
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(DarkBg)
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .background(DarkBg),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text(
-            text = "🎨 اختر مظهر كيبورد محمد",
-            color = BrandAccent,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = "تتوفر ثيمات مصممة بألوان جذابة ومطابقة للمظهر المطلوب.",
-            color = TextMuted,
-            fontSize = 12.sp
-        )
+        item {
+            Text(
+                text = "🎨 باقة المظاهر والثيمات الحصرية",
+                color = BrandPrimary,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "اختر مظهرك المفضل، يتم تطبيق الثيم فورياً وحفظه تلقائياً.",
+                color = TextMuted,
+                fontSize = 12.sp
+            )
+            Spacer(Modifier.height(6.dp))
+        }
 
-        Spacer(Modifier.height(4.dp))
-
-        allThemes.forEach { (themeName, colors) ->
+        items(allThemes) { (themeName, paletteColors) ->
             val isSelected = currentTheme == themeName
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable {
-                        onThemeChanged(themeName)
-                    }
+                    .clickable { onThemeChanged(themeName) }
                     .border(
                         width = if (isSelected) 2.dp else 0.5.dp,
-                        color = if (isSelected) BrandAccent else Color(0xFF33333E),
+                        color = if (isSelected) BrandPrimary else Color(0xFF2E3A4E),
                         shape = RoundedCornerShape(12.dp)
                     ),
                 colors = CardDefaults.cardColors(containerColor = if (isSelected) DarkCard else DarkSurface),
@@ -630,19 +745,18 @@ fun MohamedThemesTab(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Color preview dots
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            colors.forEach { c ->
+                            paletteColors.forEach { c ->
                                 Box(
                                     modifier = Modifier
-                                        .size(18.dp)
+                                        .size(20.dp)
                                         .clip(CircleShape)
                                         .background(c)
                                         .border(0.5.dp, Color.White.copy(alpha = 0.3f), CircleShape)
                                 )
                             }
                         }
-                        Spacer(Modifier.width(12.dp))
+                        Spacer(Modifier.width(14.dp))
                         Text(
                             text = themeName,
                             color = TextWhite,
@@ -654,9 +768,9 @@ fun MohamedThemesTab(
                     if (isSelected) {
                         Icon(
                             Icons.Default.CheckCircle,
-                            contentDescription = "محدد",
-                            tint = BrandAccent,
-                            modifier = Modifier.size(22.dp)
+                            contentDescription = "تم الاختيار",
+                            tint = BrandPrimary,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
@@ -666,12 +780,12 @@ fun MohamedThemesTab(
 }
 
 @Composable
-fun MohamedClipboardTab(onInsertToSandbox: (String) -> Unit) {
+fun MohamedSmartClipboardTab(onInsertToSandbox: (String) -> Unit) {
     val sampleClips = listOf(
         "السلام عليكم ورحمة الله وبركاته",
-        "شكراً جزيلاً لك على تواصلك الكريم!",
+        "شكراً جزيلاً لك على تواصلك الكريم وبارك الله فيك!",
         "zaim9002@gmail.com",
-        "تمت الترجمة بنجاح عبر كيبورد محمد.",
+        "تمت كتابة هذا النص بواسطة كيبورد محمد الذكي ⚡",
         "https://aistudio.google.com"
     )
 
@@ -685,12 +799,12 @@ fun MohamedClipboardTab(onInsertToSandbox: (String) -> Unit) {
     ) {
         Text(
             text = "📋 الحافظة الذكية والملاحظات السريعة",
-            color = BrandAccent,
+            color = BrandPrimary,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "يتم حفظ النصوص المنسوخة تلقائياً، مع إمكانية التثبيت والإدراج بنقرة واحدة.",
+            text = "إمكانية إدراج النصوص المنسوخة بلمسة واحدة مباشرة في أي تطبيق.",
             color = TextMuted,
             fontSize = 12.sp
         )
@@ -706,7 +820,7 @@ fun MohamedClipboardTab(onInsertToSandbox: (String) -> Unit) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp),
+                        .padding(14.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -716,13 +830,13 @@ fun MohamedClipboardTab(onInsertToSandbox: (String) -> Unit) {
                         fontSize = 13.sp,
                         modifier = Modifier.weight(1f)
                     )
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(10.dp))
                     Button(
                         onClick = { onInsertToSandbox(clip) },
-                        colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary),
-                        shape = RoundedCornerShape(6.dp)
+                        colors = ButtonDefaults.buttonColors(containerColor = BrandSecondary),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("إدراج", fontSize = 11.sp, color = Color.White)
+                        Text("إدراج", fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -731,7 +845,7 @@ fun MohamedClipboardTab(onInsertToSandbox: (String) -> Unit) {
 }
 
 @Composable
-fun MohamedAiTranslateTab(
+fun MohamedAiAndTranslateTab(
     sandboxText: String,
     onApplyText: (String) -> Unit
 ) {
@@ -749,13 +863,13 @@ fun MohamedAiTranslateTab(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "🌐 محرك الترجمة والذكاء الاصطناعي",
-            color = BrandAccent,
+            text = "🌐 محرك الترجمة الفورية والذكاء الاصطناعي",
+            color = BrandPrimary,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "ترجمة فورية لأكثر من 40 لغة، وضغط مطول على زر Enter للترجمة التلقائية السريعة.",
+            text = "ترجمة سريعة ودقيقة بين اللغة العربية وأكثر من 40 لغة عالمية.",
             color = TextMuted,
             fontSize = 12.sp
         )
@@ -763,18 +877,19 @@ fun MohamedAiTranslateTab(
         OutlinedTextField(
             value = inputText,
             onValueChange = { inputText = it },
-            label = { Text("النص المراد ترجمته", color = TextMuted) },
+            label = { Text("النص المطلوب ترجمته أو تشكيله", color = TextMuted) },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(90.dp),
+                .height(100.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = BrandAccent,
-                unfocusedBorderColor = Color(0xFF33333E),
+                focusedBorderColor = BrandPrimary,
+                unfocusedBorderColor = Color(0xFF2E3A4E),
                 focusedTextColor = TextWhite,
                 unfocusedTextColor = TextWhite,
                 focusedContainerColor = DarkSurface,
                 unfocusedContainerColor = DarkSurface
-            )
+            ),
+            shape = RoundedCornerShape(10.dp)
         )
 
         Row(
@@ -798,9 +913,15 @@ fun MohamedAiTranslateTab(
                     }
                 },
                 modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(containerColor = BrandAccent)
+                colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary),
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Text(if (isLoading) "جاري الترجمة..." else "ترجمة الآن (عربي ⇄ English)", color = Color.Black, fontWeight = FontWeight.Bold)
+                Text(
+                    text = if (isLoading) "جاري المعالجة..." else "ترجمة فورية (عربي ⇄ English)",
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
+                )
             }
         }
 
@@ -810,16 +931,17 @@ fun MohamedAiTranslateTab(
                 colors = CardDefaults.cardColors(containerColor = DarkCard),
                 shape = RoundedCornerShape(10.dp)
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text("النتيجة المترجمة:", color = BrandAccent, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    Spacer(Modifier.height(4.dp))
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Text("النتيجة المترجمة:", color = BrandPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Spacer(Modifier.height(6.dp))
                     Text(outputText, color = TextWhite, fontSize = 14.sp)
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(10.dp))
                     Button(
                         onClick = { onApplyText(outputText) },
-                        colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = BrandSecondary),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("تطبيق النص في حقل التجربة", color = Color.White, fontSize = 12.sp)
+                        Text("تطبيق النص في حقل التجربة", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -828,11 +950,13 @@ fun MohamedAiTranslateTab(
 }
 
 @Composable
-fun MohamedSettingsTab(prefs: KeyboardPreferences) {
+fun MohamedComprehensiveSettingsTab(prefs: KeyboardPreferences) {
     var heightPercent by remember { mutableIntStateOf(prefs.keyboardHeightPercent) }
     var showNumbers by remember { mutableStateOf(prefs.showNumberRow) }
     var haptic by remember { mutableStateOf(prefs.hapticFeedback != "Off") }
+    var hapticLevel by remember { mutableStateOf(prefs.hapticFeedback) }
     var sound by remember { mutableStateOf(prefs.soundFeedback != "Off") }
+    var soundProfile by remember { mutableStateOf(prefs.soundFeedback) }
     var autoTranslate by remember { mutableStateOf(prefs.autoTranslateOnEnter) }
 
     Column(
@@ -841,16 +965,16 @@ fun MohamedSettingsTab(prefs: KeyboardPreferences) {
             .background(DarkBg)
             .padding(16.dp)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "⚙️ إعدادات كيبورد محمد",
-            color = BrandAccent,
+            text = "⚙️ الإعدادات والتخصيص الشامل",
+            color = BrandPrimary,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold
         )
 
-        // Setting Item: Number Row
+        // Setting 1: Dedicated Number Row
         SettingToggleCard(
             title = "صف الأرقام المستقل",
             subtitle = "إظهار صف مستقل للأرقام فوق الحروف",
@@ -861,10 +985,10 @@ fun MohamedSettingsTab(prefs: KeyboardPreferences) {
             }
         )
 
-        // Setting Item: Auto-translate on Enter
+        // Setting 2: Auto-translate on Enter
         SettingToggleCard(
             title = "ترجمة تلقائية عند الضغط على Enter",
-            subtitle = "ترجمة النص مباشرة إلى الإنجليزية عند الضغط",
+            subtitle = "ترجمة النص مباشرة إلى الإنجليزية عند النقر",
             checked = autoTranslate,
             onCheckedChange = {
                 autoTranslate = it
@@ -872,29 +996,144 @@ fun MohamedSettingsTab(prefs: KeyboardPreferences) {
             }
         )
 
-        // Setting Item: Haptic Feedback
-        SettingToggleCard(
-            title = "الاهتزاز عند اللمس (Haptic)",
-            subtitle = "تفعيل الاهتزاز الخفيف عند الضغط على المفاتيح",
-            checked = haptic,
-            onCheckedChange = {
-                haptic = it
-                prefs.hapticFeedback = if (it) "Medium" else "Off"
-            }
-        )
+        // Setting 3: Haptic Feedback
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = DarkSurface),
+            shape = RoundedCornerShape(10.dp)
+        ) {
+            Column(modifier = Modifier.padding(14.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("الاهتزاز عند اللمس (Haptic)", color = TextWhite, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("تفعيل الاهتزاز الخفيف عند الضغط على المفاتيح", color = TextMuted, fontSize = 11.sp)
+                    }
+                    Switch(
+                        checked = haptic,
+                        onCheckedChange = {
+                            haptic = it
+                            val newLevel = if (it) "Medium" else "Off"
+                            hapticLevel = newLevel
+                            prefs.hapticFeedback = newLevel
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = BrandPrimary,
+                            checkedTrackColor = BrandSecondary.copy(alpha = 0.5f),
+                            uncheckedThumbColor = TextMuted,
+                            uncheckedTrackColor = DarkCard
+                        )
+                    )
+                }
 
-        // Setting Item: Sound Feedback
-        SettingToggleCard(
-            title = "أصوات النقر",
-            subtitle = "تفعيل الصوت التفاعلي عند النقر",
-            checked = sound,
-            onCheckedChange = {
-                sound = it
-                prefs.soundFeedback = if (it) "CLICK" else "Off"
+                if (haptic) {
+                    Spacer(Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        listOf("Light" to "خفيف", "Medium" to "متوسط", "Heavy" to "قوي").forEach { (lvl, label) ->
+                            val isSelected = hapticLevel == lvl
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(if (isSelected) BrandPrimary else DarkCard)
+                                    .clickable {
+                                        hapticLevel = lvl
+                                        prefs.hapticFeedback = lvl
+                                    }
+                                    .padding(vertical = 6.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = label,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSelected) Color.Black else TextWhite
+                                )
+                            }
+                        }
+                    }
+                }
             }
-        )
+        }
 
-        // Setting Item: Keyboard Height Slider
+        // Setting 4: Keypress Sounds
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = DarkSurface),
+            shape = RoundedCornerShape(10.dp)
+        ) {
+            Column(modifier = Modifier.padding(14.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("أصوات النقر", color = TextWhite, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("تفعيل الصوت التفاعلي عند النقر", color = TextMuted, fontSize = 11.sp)
+                    }
+                    Switch(
+                        checked = sound,
+                        onCheckedChange = {
+                            sound = it
+                            val newProfile = if (it) "CLICK" else "Off"
+                            soundProfile = newProfile
+                            prefs.soundFeedback = newProfile
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = BrandPrimary,
+                            checkedTrackColor = BrandSecondary.copy(alpha = 0.5f),
+                            uncheckedThumbColor = TextMuted,
+                            uncheckedTrackColor = DarkCard
+                        )
+                    )
+                }
+
+                if (sound) {
+                    Spacer(Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        listOf(
+                            "CLICK" to "كلاسيكي",
+                            "TYPEWRITER" to "آلة كاتبة",
+                            "WATER" to "مائي",
+                            "CHERRY_MX" to "ميكانيكي"
+                        ).forEach { (prof, label) ->
+                            val isSelected = soundProfile == prof
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(if (isSelected) BrandPrimary else DarkCard)
+                                    .clickable {
+                                        soundProfile = prof
+                                        prefs.soundFeedback = prof
+                                    }
+                                    .padding(vertical = 6.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = label,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSelected) Color.Black else TextWhite
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Setting 5: Keyboard Height Slider
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = DarkSurface),
@@ -906,7 +1145,7 @@ fun MohamedSettingsTab(prefs: KeyboardPreferences) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("ارتفاع لوحة المفاتيح", color = TextWhite, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    Text("$heightPercent%", color = BrandAccent, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text("$heightPercent%", color = BrandPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 }
                 Slider(
                     value = heightPercent.toFloat(),
@@ -916,13 +1155,27 @@ fun MohamedSettingsTab(prefs: KeyboardPreferences) {
                     },
                     valueRange = 70f..140f,
                     colors = SliderDefaults.colors(
-                        thumbColor = BrandAccent,
-                        activeTrackColor = BrandAccent,
+                        thumbColor = BrandPrimary,
+                        activeTrackColor = BrandPrimary,
                         inactiveTrackColor = DarkCard
                     )
                 )
             }
         }
+    }
+}
+
+@Composable
+fun QuickSampleChip(label: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(DarkCard)
+            .border(0.5.dp, Color(0xFF2E3A4E), RoundedCornerShape(6.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 5.dp)
+    ) {
+        Text(text = label, color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -954,8 +1207,8 @@ fun SettingToggleCard(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = BrandAccent,
-                    checkedTrackColor = BrandPrimary.copy(alpha = 0.5f),
+                    checkedThumbColor = BrandPrimary,
+                    checkedTrackColor = BrandSecondary.copy(alpha = 0.5f),
                     uncheckedThumbColor = TextMuted,
                     uncheckedTrackColor = DarkCard
                 )

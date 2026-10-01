@@ -31,7 +31,7 @@ fun InstaFontPanel(
     onInsertText: (String) -> Unit,
     onClose: () -> Unit
 ) {
-    var sampleText by remember { mutableStateOf(if (draftText.isNotBlank()) draftText else "Nova Keyboard") }
+    var sampleText by remember { mutableStateOf(if (draftText.isNotBlank()) draftText else "كيبورد محمد") }
 
     val styles = listOf(
         InstaFontStyle("عريض (Bold)") { text ->

@@ -62,7 +62,7 @@ abstract class AppDatabase : RoomDatabase() {
             db.execSQL("INSERT OR IGNORE INTO shortcuts (trigger, replacement, timestamp) VALUES ('omw', 'On my way!', $now)")
             db.execSQL("INSERT OR IGNORE INTO shortcuts (trigger, replacement, timestamp) VALUES ('صلى', 'صلى الله عليه وسلم', $now)")
             db.execSQL("INSERT OR IGNORE INTO shortcuts (trigger, replacement, timestamp) VALUES ('جزاك', 'جزاك الله خيراً', $now)")
-            db.execSQL("INSERT OR IGNORE INTO clipboard_items (text, timestamp, isPinned, folder) VALUES ('مرحباً بك في Nova Keyboard - كيبورد محمد v.1!', $now, 1, 'عام')")
+            db.execSQL("INSERT OR IGNORE INTO clipboard_items (text, timestamp, isPinned, folder) VALUES ('مرحباً بك في كيبورد محمد!', $now, 1, 'عام')")
             db.execSQL("INSERT OR IGNORE INTO clipboard_items (text, timestamp, isPinned, folder) VALUES ('سبحان الله وبحمده سبحان الله العظيم', $now, 1, 'عام')")
         }
     }
