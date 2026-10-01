@@ -1,0 +1,6 @@
+{
+  "name": "Nova Keyboard - محمد v.1",
+  "description": "لوحة مفاتيح نوفا - كيبورد محمد v.1: ترجمة فورية، زخرفة نصوص، ذكاء اصطناعي، ثيمات مخصصة وحافظة متقدمة",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
