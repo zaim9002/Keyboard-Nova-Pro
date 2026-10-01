@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "NOVA Keyboard"
+rootProject.name = "كيبورد محمد"
 
 include(":app")

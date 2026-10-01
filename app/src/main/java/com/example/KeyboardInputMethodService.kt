@@ -188,6 +188,7 @@ class KeyboardInputMethodService : ComposeInputMethodService() {
                     onDeleteWord = { handleDeleteWord() },
                     onDeleteAll = { handleDeleteAll() },
                     onEnter = { handleEnter(autoTranslateOnEnter) },
+                    onLongPressEnter = { handleLongPressEnter() },
                     onSpace = { handleSpace() },
                     onSwitchLanguage = { switchLanguage() },
                     onSelectLanguage = { lang -> selectLanguage(lang) },
@@ -425,6 +426,26 @@ class KeyboardInputMethodService : ComposeInputMethodService() {
         val before = ic.getTextBeforeCursor(500, 0)?.toString() ?: ""
         val clean = before.trim()
         if (clean.isEmpty()) return
+
+        serviceScope.launch(Dispatchers.IO) {
+            val translated = TranslationEngine.translateAsync(clean, sourceLang, targetLang)
+            withContext(Dispatchers.Main) {
+                ic.deleteSurroundingText(before.length, 0)
+                ic.commitText(translated, 1)
+                refreshEditorState()
+            }
+        }
+    }
+
+    private fun handleLongPressEnter() {
+        val ic = currentInputConnection ?: return
+        val before = ic.getTextBeforeCursor(1000, 0)?.toString() ?: ""
+        val clean = before.trim()
+        if (clean.isEmpty()) return
+
+        val isArabic = clean.any { it in '\u0600'..'\u06FF' }
+        val sourceLang = if (isArabic) "ar" else "en"
+        val targetLang = if (isArabic) "en" else "ar"
 
         serviceScope.launch(Dispatchers.IO) {
             val translated = TranslationEngine.translateAsync(clean, sourceLang, targetLang)

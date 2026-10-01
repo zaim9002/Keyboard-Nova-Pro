@@ -25,13 +25,41 @@ object KeyboardLayouts {
     val arabicTashkeel = listOf("َ", "ً", "ُ", "ٌ", "ِ", "ٍ", "ْ", "ّ", "ـ", "؟")
 
     val arabicQuickRow = listOf(
-        KeyModel("ﷺ"),
-        KeyModel("ﷻ"),
-        KeyModel("لا", popupOptions = listOf("لإ", "لأ", "لآ")),
-        KeyModel("إ", popupOptions = listOf("أ", "إ", "آ", "ء", "ٱ")),
-        KeyModel("ة", popupOptions = listOf("ه", "ـة")),
-        KeyModel("ى", popupOptions = listOf("ي", "ئ")),
-        KeyModel("؟", popupOptions = listOf("?", "!", "،", "؛"))
+        KeyModel("خاص"),
+        KeyModel("😂"),
+        KeyModel("ـ"),
+        KeyModel("ئ", popupOptions = listOf("ئ", "ء", "ؤ")),
+        KeyModel("ء"),
+        KeyModel("ؤ"),
+        KeyModel("ة"),
+        KeyModel("💋"),
+        KeyModel("👑")
+    )
+
+    val englishQuickRow = listOf(
+        KeyModel("🔥"),
+        KeyModel("ههه"),
+        KeyModel("⭐"),
+        KeyModel("🔫"),
+        KeyModel("❤️"),
+        KeyModel("🍋"),
+        KeyModel("🍌"),
+        KeyModel("🌿"),
+        KeyModel("🤌"),
+        KeyModel("✏️")
+    )
+
+    val englishSymbolsTopRow = listOf(
+        KeyModel("@"),
+        KeyModel("#"),
+        KeyModel("/"),
+        KeyModel("+"),
+        KeyModel("%"),
+        KeyModel("_"),
+        KeyModel("."),
+        KeyModel("-"),
+        KeyModel("*"),
+        KeyModel(":")
     )
 
     val arabicNumbersRow = listOf(
@@ -71,8 +99,7 @@ object KeyboardLayouts {
         KeyModel("ه", secondaryText = ">", popupOptions = listOf(">", "ة", "هـ")),
         KeyModel("خ", secondaryText = "[", popupOptions = listOf("[", "خ")),
         KeyModel("ح", secondaryText = "]", popupOptions = listOf("]", "ح")),
-        KeyModel("ج", secondaryText = "~", popupOptions = listOf("~", "چ", "ج")),
-        KeyModel("د", secondaryText = "#", popupOptions = listOf("#", "د"))
+        KeyModel("ج", secondaryText = "~", popupOptions = listOf("~", "چ", "ج"))
     )
 
     val arabicRow2 = listOf(
@@ -90,15 +117,16 @@ object KeyboardLayouts {
     )
 
     val arabicRow3 = listOf(
-        KeyModel("ئ", secondaryText = "ء"),
-        KeyModel("ء"),
-        KeyModel("ؤ"),
-        KeyModel("ر", secondaryText = "'"),
-        KeyModel("ى", secondaryText = "\""),
-        KeyModel("ة", secondaryText = ":"),
-        KeyModel("و", secondaryText = ";"),
+        KeyModel("ظ", secondaryText = "؟"),
+        KeyModel("ط", secondaryText = "(", popupOptions = listOf("ظ", "ط")),
+        KeyModel("ذ", secondaryText = "\"", popupOptions = listOf("ذ", "د")),
+        KeyModel("د", secondaryText = "'", popupOptions = listOf("د", "ذ")),
         KeyModel("ز", secondaryText = ","),
-        KeyModel("ظ", secondaryText = "؟")
+        KeyModel("ر", secondaryText = "."),
+        KeyModel("و", secondaryText = "؛", popupOptions = listOf("ؤ", "و")),
+        KeyModel("ة", secondaryText = ":", popupOptions = listOf("ه", "ة")),
+        KeyModel("ى", secondaryText = "!", popupOptions = listOf("ي", "ى")),
+        KeyModel("ث", secondaryText = "÷", popupOptions = listOf("ث", "ئ", "ء"))
     )
 
     val englishRow1 = listOf(

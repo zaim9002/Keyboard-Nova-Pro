@@ -403,15 +403,6 @@ fun KeyboardScreen(
                 .background(colorScheme.background)
                 .then(if (applyNavigationBarsPadding) Modifier.navigationBarsPadding() else Modifier)
         ) {
-            // 0. News & Trend Ticker Bar
-            if (activePanel == KeyboardPanel.NONE) {
-                KeyboardTickerBar(
-                    colorScheme = colorScheme,
-                    onOpenMenu = { navigateToPanel(KeyboardPanel.MENU) },
-                    onHeadlineClick = { headline -> onTextInput(headline) }
-                )
-            }
-
             // 1. Toolbar
             KeyboardToolbar(
                 activePanel = activePanel,
@@ -1381,6 +1372,35 @@ private fun ArabicKeyboardLayout(
     hapticDurationMs: Int = 20,
     onPreviewChange: ((String, androidx.compose.ui.layout.LayoutCoordinates?, Boolean) -> Unit)? = null
 ) {
+    // Top Quick Shortcuts Row (Matches Screenshot 3)
+    Row(modifier = Modifier.fillMaxWidth()) {
+        for (key in KeyboardLayouts.arabicQuickRow) {
+            KeyButton(
+                text = key.primaryText,
+                secondaryText = key.secondaryText,
+                height = keyHeight * 0.76f,
+                fontSize = 13.sp,
+                secondaryFontSize = secondaryFontSize,
+                cornerRadius = keyCornerRadius,
+                strokeBorder = keyStrokeBorder,
+                colorScheme = colorScheme,
+                hapticEnabled = hapticEnabled,
+                hapticIntensity = hapticIntensity,
+                hapticDurationMs = hapticDurationMs,
+                soundEnabled = soundEnabled,
+                soundType = soundType,
+                soundVolume = soundVolume,
+                showPreview = showKeyPreview,
+                onPreviewChange = onPreviewChange,
+                modifier = Modifier.weight(key.weight),
+                onLongClickWithCoords = { coords -> onLongPressKey(key, coords) },
+                onLongClick = { onLongPressKey(key, null) }
+            ) {
+                onTextInput(key.primaryText)
+            }
+        }
+    }
+
     Row(modifier = Modifier.fillMaxWidth()) {
         for (key in KeyboardLayouts.arabicRow1) {
             KeyButton(
@@ -1558,6 +1578,66 @@ private fun DynamicKeyboardLayout(
     onPreviewChange: ((String, androidx.compose.ui.layout.LayoutCoordinates?, Boolean) -> Unit)? = null
 ) {
     val isUpper = shiftState != ShiftState.OFF
+
+    // Top Quick Shortcuts Row for English (Matches Screenshot 2)
+    if (currentLanguage.startsWith("en")) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            for (key in KeyboardLayouts.englishQuickRow) {
+                KeyButton(
+                    text = key.primaryText,
+                    secondaryText = key.secondaryText,
+                    height = keyHeight * 0.76f,
+                    fontSize = 13.sp,
+                    secondaryFontSize = secondaryFontSize,
+                    cornerRadius = keyCornerRadius,
+                    strokeBorder = keyStrokeBorder,
+                    colorScheme = colorScheme,
+                    hapticEnabled = hapticEnabled,
+                    hapticIntensity = hapticIntensity,
+                    hapticDurationMs = hapticDurationMs,
+                    soundEnabled = soundEnabled,
+                    soundType = soundType,
+                    soundVolume = soundVolume,
+                    showPreview = showKeyPreview,
+                    onPreviewChange = onPreviewChange,
+                    modifier = Modifier.weight(key.weight),
+                    onLongClickWithCoords = { coords -> onLongPressKey(key, coords) },
+                    onLongClick = { onLongPressKey(key, null) }
+                ) {
+                    onTextInput(key.primaryText)
+                }
+            }
+        }
+
+        // Top Symbols Row (@, #, /, +, %, _, ., -, *, :)
+        Row(modifier = Modifier.fillMaxWidth()) {
+            for (key in KeyboardLayouts.englishSymbolsTopRow) {
+                KeyButton(
+                    text = key.primaryText,
+                    secondaryText = key.secondaryText,
+                    height = keyHeight * 0.76f,
+                    fontSize = 15.sp,
+                    secondaryFontSize = secondaryFontSize,
+                    cornerRadius = keyCornerRadius,
+                    strokeBorder = keyStrokeBorder,
+                    colorScheme = colorScheme,
+                    hapticEnabled = hapticEnabled,
+                    hapticIntensity = hapticIntensity,
+                    hapticDurationMs = hapticDurationMs,
+                    soundEnabled = soundEnabled,
+                    soundType = soundType,
+                    soundVolume = soundVolume,
+                    showPreview = showKeyPreview,
+                    onPreviewChange = onPreviewChange,
+                    modifier = Modifier.weight(key.weight),
+                    onLongClickWithCoords = { coords -> onLongPressKey(key, coords) },
+                    onLongClick = { onLongPressKey(key, null) }
+                ) {
+                    onTextInput(key.primaryText)
+                }
+            }
+        }
+    }
 
     Row(modifier = Modifier.fillMaxWidth()) {
         for (key in layoutData.row1) {
@@ -2556,11 +2636,12 @@ private fun BottomControlRow(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // 1. Mode switch button 123!#()
         KeyButton(
             text = modeLabel,
-            secondaryText = if (modeLabel.contains("123") || modeLabel.contains("١٢٣") || modeLabel.contains("Sym")) "رموز" else null,
+            secondaryText = null,
             isSpecial = true,
-            fontSize = 13.sp,
+            fontSize = 12.sp,
             secondaryFontSize = 8.sp,
             height = keyHeight,
             cornerRadius = keyCornerRadius,
@@ -2572,15 +2653,16 @@ private fun BottomControlRow(
             soundVolume = soundVolume,
             hapticIntensity = hapticIntensity,
             hapticDurationMs = hapticDurationMs,
-            modifier = Modifier.weight(1.05f),
+            modifier = Modifier.weight(1.1f),
             onLongClick = null
         ) {
             onSwitchMode()
         }
 
+        // 2. Clipboard Icon Button
         KeyButton(
-            text = commaLabel,
-            secondaryText = "...",
+            text = "📋",
+            secondaryText = null,
             isSpecial = true,
             fontSize = 15.sp,
             secondaryFontSize = 8.sp,
@@ -2594,40 +2676,18 @@ private fun BottomControlRow(
             soundVolume = soundVolume,
             hapticIntensity = hapticIntensity,
             hapticDurationMs = hapticDurationMs,
-            modifier = Modifier.weight(0.75f)
+            modifier = Modifier.weight(0.8f),
+            onLongClick = onOpenClipboard
         ) {
-            onTextInput(commaLabel)
+            if (onOpenClipboard != null) onOpenClipboard()
         }
 
-        val isArabic = currentLanguage.startsWith("ar")
-        val langToggleSecondary = if (isArabic) "EN" else "عربي"
+        // 3. .com Quick URL Button
         KeyButton(
-            text = "🌐",
-            secondaryText = langToggleSecondary,
+            text = ".com",
+            secondaryText = null,
             isSpecial = true,
-            fontSize = 14.sp,
-            secondaryFontSize = 9.sp,
-            height = keyHeight,
-            cornerRadius = keyCornerRadius,
-            strokeBorder = keyStrokeBorder,
-            colorScheme = colorScheme,
-            hapticEnabled = hapticEnabled,
-            soundEnabled = soundEnabled,
-            soundType = soundType,
-            soundVolume = soundVolume,
-            hapticIntensity = hapticIntensity,
-            hapticDurationMs = hapticDurationMs,
-            modifier = Modifier.weight(0.85f),
-            onLongClick = onLongPressLanguage
-        ) {
-            onSwitchLanguage()
-        }
-
-        KeyButton(
-            text = "📋",
-            secondaryText = "حافظة",
-            isSpecial = true,
-            fontSize = 14.sp,
+            fontSize = 11.sp,
             secondaryFontSize = 8.sp,
             height = keyHeight,
             cornerRadius = keyCornerRadius,
@@ -2640,11 +2700,12 @@ private fun BottomControlRow(
             hapticIntensity = hapticIntensity,
             hapticDurationMs = hapticDurationMs,
             modifier = Modifier.weight(0.85f),
-            onLongClick = onOpenClipboard
+            onLongClick = null
         ) {
-            if (onOpenClipboard != null) onOpenClipboard()
+            onTextInput(".com")
         }
 
+        // 4. Spacebar Key Button with label (e.g. عربي اساسي / English)
         SpaceBarKeyButton(
             modifier = Modifier.weight(3.6f),
             spaceLabel = spaceLabel,
@@ -2666,6 +2727,28 @@ private fun BottomControlRow(
             onLongPress = onLongPressLanguage
         )
 
+        // 5. Slash / Colon Key
+        KeyButton(
+            text = "/",
+            secondaryText = ":",
+            fontSize = 16.sp,
+            secondaryFontSize = 9.sp,
+            height = keyHeight,
+            cornerRadius = keyCornerRadius,
+            strokeBorder = keyStrokeBorder,
+            colorScheme = colorScheme,
+            hapticEnabled = hapticEnabled,
+            soundEnabled = soundEnabled,
+            soundType = soundType,
+            soundVolume = soundVolume,
+            hapticIntensity = hapticIntensity,
+            hapticDurationMs = hapticDurationMs,
+            modifier = Modifier.weight(0.75f)
+        ) {
+            onTextInput("/")
+        }
+
+        // 6. Dot / Quote Key
         KeyButton(
             text = ".",
             secondaryText = "'",
@@ -2681,11 +2764,12 @@ private fun BottomControlRow(
             soundVolume = soundVolume,
             hapticIntensity = hapticIntensity,
             hapticDurationMs = hapticDurationMs,
-            modifier = Modifier.weight(0.85f)
+            modifier = Modifier.weight(0.75f)
         ) {
             onTextInput(".")
         }
 
+        // 7. Enter Key Button (with long-press translation)
         EnterKeyButton(
             modifier = Modifier.weight(1.15f),
             keyHeight = keyHeight,
